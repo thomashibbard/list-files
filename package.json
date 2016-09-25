@@ -16,6 +16,7 @@
     "glob": "^7.0.6",
     "is-directory": "^0.3.1",
     "path": "^0.12.7",
+    "readdir-recursive-promise": "0.0.1",
     "recursive-readdir": "^2.1.0",
     "yargs": "^5.0.0"
   }
