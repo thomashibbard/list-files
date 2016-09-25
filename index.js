@@ -15,16 +15,17 @@ function ls(source, firstRun, callback) {
 	fs.readdir(source, (err, items) => {
 		items.forEach((item, i, items) => {
 			var pathAndItem = path.join(source, item);
-			var pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean);
-			console.log(baseDirLen, pathAndItemLen);
+			var pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean).length;
+			var distanceFromBase = pathAndItemLen - baseDirLen;
+			// console.log(baseDirLen, pathAndItemLen, distanceFromBase);
 			var isDir = fs.lstatSync(pathAndItem).isDirectory();
 			if(isDir){
 				// console.log(baseDir + '\n' + item)			
-				console.log('📁', source, item);
+				console.log('-'.repeat(distanceFromBase), '📁', item);
 				ls(pathAndItem);
 			}else{
 				// console.log(baseDir + '\n' + item)
-				console.log('📄', source, item);
+				console.log('-'.repeat(distanceFromBase), '📄', item);
 			}
 		})
 	});
@@ -35,14 +36,14 @@ function dirTest(item){
 }
 
 var baseDir = '/Users/thomashibbard/Desktop/ls-recursive/testDirectory';
-var baseDirLen = baseDir.split(path.sep).filter(Boolean);
-// console.log(baseDirArr);
+var baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
+// console.log(baseDirArr);no
 ls(baseDir, true, function(){
 	processResults();
 });
 function processResults(){
 
-	console.log(res);
+	// console.log(res);
 }
 
 
