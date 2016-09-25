@@ -1,0 +1,58 @@
+"use strict"
+
+let yargs = require('yargs')
+	, path = require('path')
+	, Promise = require('bluebird')
+	, fs = require('fs')
+	, escape = require('escape-regexp')
+	, isDirectory = require('is-directory');
+
+let res = [];
+function ls(source, firstRun, callback) {
+	firstRun = firstRun || false;
+	callback = callback || function(){};
+	source = path.resolve(path.sep + source);
+	fs.readdir(source, (err, items) => {
+		items.forEach((item, i, items) => {
+			var pathAndItem = path.join(source, item);
+			var pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean);
+			console.log(baseDirLen, pathAndItemLen);
+			var isDir = fs.lstatSync(pathAndItem).isDirectory();
+			if(isDir){
+				// console.log(baseDir + '\n' + item)			
+				console.log('📁', source, item);
+				ls(pathAndItem);
+			}else{
+				// console.log(baseDir + '\n' + item)
+				console.log('📄', source, item);
+			}
+		})
+	});
+}
+
+function dirTest(item){	
+	fs.lstatSync(item).isDirectory()
+}
+
+var baseDir = '/Users/thomashibbard/Desktop/ls-recursive/testDirectory';
+var baseDirLen = baseDir.split(path.sep).filter(Boolean);
+// console.log(baseDirArr);
+ls(baseDir, true, function(){
+	processResults();
+});
+function processResults(){
+
+	console.log(res);
+}
+
+
+function sort(a, b){
+  return function(a, b){
+    if (a.name > b.name)
+      return -1;
+    if (a.name < b.name)
+      return 1;
+    return 0;
+  };
+}
+

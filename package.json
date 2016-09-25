@@ -1,0 +1,22 @@
+{
+  "name": "ls-recursive",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "escape-regexp": "0.0.1",
+    "fs": "0.0.1-security",
+    "fs-promise": "^0.5.0",
+    "glob": "^7.0.6",
+    "is-directory": "^0.3.1",
+    "path": "^0.12.7",
+    "recursive-readdir": "^2.1.0",
+    "yargs": "^5.0.0"
+  }
+}
