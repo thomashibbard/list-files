@@ -11,18 +11,24 @@ const yargs = require('yargs').argv
 	// , _ = require('lodash');
 
 let res = {};
+// let junkFlag = yargs.h || false;
+// console.log(junkFlag);
 let lt = function(source, parentDistance, callback) {
-	res[source] = [];
+	// res[source] = [];
 	parentDistance = parentDistance || 0;
 	callback = callback || function(){};
 	source = path.resolve(path.sep + source);
 
 	let items = fs.readdirSync(source).filter(junk.not);
+	// let items = fs.readdirSync(source).filter(junkFlag ? junk.not : () => true);
+
+	//single item and path to object containing type, icon, etc
 	let itemsAsObj = items.map((item, i, items) => { 
 		let pathAndItem = path.join(source, item);
 		return getFileProperties(item, pathAndItem);
 	});
 
+	//sort to put directories first by name, then all other file types alphabetically
 	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
 
 	itemsAsObj.forEach((item, i, items) => {
@@ -34,12 +40,12 @@ let lt = function(source, parentDistance, callback) {
 		if(item.type === 'dir'){
 			leader = getVisualIndexIdentifier(distanceFromBase);
 			// res[item] = [];
-			console.log(leader, '» '.repeat(distanceFromBase - 1), item.icon, item.item);
+			console.log(leader, '» '.repeat(distanceFromBase), item.icon, item.item);
 			lt(pathAndItem, distanceFromBase);
 		}else{
-			leader = getVisualIndexIdentifier(distanceFromBase - 1);
+			leader = getVisualIndexIdentifier(distanceFromBase);
 			//res[item].push(item);
-			console.log(leader, '» '.repeat(distanceFromBase - 1), item.icon, item.item);
+			console.log(leader, '» '.repeat(distanceFromBase), item.icon, item.item);
 		}
 	});
 }
@@ -81,7 +87,7 @@ function dirTest(item){
 	fs.lstatSync(item).isDirectory();
 }
 
-let baseDir = yargs.d || '/Users/thomashibbard/Desktop/ls-recursive/testDirectory';
+let baseDir = yargs.d || path.join(__dirname, 'testDirectory');
 let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
 
 lt(baseDir, 0, function(){
