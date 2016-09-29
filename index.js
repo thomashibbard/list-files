@@ -6,65 +6,61 @@ const yargs = require('yargs').argv
 	, Promise = require('bluebird')
 	, escape = require('escape-regexp')
 	, isImage = require('is-image')
-	, junk = require('junk');
+	, junk = require('junk')
+	, _sortBy = require('lodash.sortby')
+	// , _ = require('lodash');
 
 let res = {};
 let lt = function(source, parentDistance, callback) {
-	// firstRun = firstRun || false;
+	res[source] = [];
 	parentDistance = parentDistance || 0;
 	callback = callback || function(){};
 	source = path.resolve(path.sep + source);
 
-	let items = fs.readdirSync(source);
-	items = items.filter(junk.not)
-
-	items.forEach((item, i, items) => {
+	let items = fs.readdirSync(source).filter(junk.not);
+	let itemsAsObj = items.map((item, i, items) => { 
 		let pathAndItem = path.join(source, item);
+		return getFileProperties(item, pathAndItem);
+	});
+
+	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
+
+	itemsAsObj.forEach((item, i, items) => {
+		let pathAndItem = item.fullPath;
 		let pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean).length;
 		let distanceFromBase = pathAndItemLen - baseDirLen;
 		let leader;
-		let fileProperties = getFileProperties(pathAndItem);
 
-		if(fileProperties.type === 'dir'){
+		if(item.type === 'dir'){
 			leader = getVisualIndexIdentifier(distanceFromBase);
-			console.log(leader, '» '.repeat(distanceFromBase - 1), fileProperties.icon, item);
+			// res[item] = [];
+			console.log(leader, '» '.repeat(distanceFromBase - 1), item.icon, item.item);
 			lt(pathAndItem, distanceFromBase);
 		}else{
 			leader = getVisualIndexIdentifier(distanceFromBase - 1);
-			// console.log(distanceFromBase)
-			console.log(leader, '» '.repeat(distanceFromBase - 1), fileProperties.icon, item);
+			//res[item].push(item);
+			console.log(leader, '» '.repeat(distanceFromBase - 1), item.icon, item.item);
 		}
-	})
+	});
 }
-function getFileProperties(path){
-  
-	let isImageFlag = isImage(path);
-	let isDirFlag = isDirectory(path);
+
+function getFileProperties(item, fullPath){
+  // console.log('item', item);
+	let isImageFlag = isImage(fullPath);
+	let isDirFlag = isDirectory(fullPath);
 	var ret;
   if(isImageFlag){
-  	ret = {type: 'image', icon: '🗻 '};
+  	ret = {type: 'image', item: item, fullPath: fullPath, icon: '🗻 '};
   }else if(isDirFlag){
-  	ret = {type: 'dir', icon: '📁 '};
+  	ret = {type: 'dir', item: item, fullPath: fullPath, icon: '📁 '};
   }else{
-  	ret = {type: 'file', icon: '📄 '};
+  	ret = {type: 'file', item: item, fullPath: fullPath, icon: '📄 '};
   }
   return ret;
 }
 
 function isDirectory(item){
 	return fs.lstatSync(item).isDirectory();
-}
-
-function getItemType(item){
-	let ret;
-
-	if(isImage(item)){
-		ret = {type: 'image', icon: '🗻 '};
-	}else if(isDir(item)){
-		ret = {type: 'dir', icon: '📁 '};
-	}else if(isFile(item)){
-		ret = {type: 'file', icon: '📄 '};
-	}
 }
 
 function getFileType(path){
@@ -114,6 +110,6 @@ function sort(a, b){
     return 0;
   };
 }
-
+// console.log(JSON.stringify(res, false, 2));
 module.exports = lt;
 
