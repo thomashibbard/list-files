@@ -1,49 +1,109 @@
 "use strict"
 
-let yargs = require('yargs')
+const yargs = require('yargs').argv
 	, path = require('path')
-	, Promise = require('bluebird')
 	, fs = require('fs')
+	, Promise = require('bluebird')
 	, escape = require('escape-regexp')
-	, isDirectory = require('is-directory');
+	, isImage = require('is-image')
+	, junk = require('junk')
+	, _sortBy = require('lodash.sortby')
+	// , _ = require('lodash');
 
-let res = [];
-function ls(source, firstRun, callback) {
-	firstRun = firstRun || false;
+let res = {};
+// let junkFlag = yargs.h || false;
+// console.log(junkFlag);
+let lt = function(source, parentDistance, callback) {
+	// res[source] = [];
+	parentDistance = parentDistance || 0;
 	callback = callback || function(){};
 	source = path.resolve(path.sep + source);
-	fs.readdir(source, (err, items) => {
-		items.forEach((item, i, items) => {
-			var pathAndItem = path.join(source, item);
-			var pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean).length;
-			var distanceFromBase = pathAndItemLen - baseDirLen;
-			// console.log(baseDirLen, pathAndItemLen, distanceFromBase);
-			var isDir = fs.lstatSync(pathAndItem).isDirectory();
-			if(isDir){
-				// console.log(baseDir + '\n' + item)			
-				console.log('-'.repeat(distanceFromBase), '📁', item);
-				ls(pathAndItem);
-			}else{
-				// console.log(baseDir + '\n' + item)
-				console.log('-'.repeat(distanceFromBase), '📄', item);
-			}
-		})
+
+	let items = fs.readdirSync(source).filter(junk.not);
+	// let items = fs.readdirSync(source).filter(junkFlag ? junk.not : () => true);
+
+	//single item and path to object containing type, icon, etc
+	let itemsAsObj = items.map((item, i, items) => { 
+		let pathAndItem = path.join(source, item);
+		return getFileProperties(item, pathAndItem);
+	});
+
+	//sort to put directories first by name, then all other file types alphabetically
+	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
+
+	itemsAsObj.forEach((item, i, items) => {
+		let pathAndItem = item.fullPath;
+		let pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean).length;
+		let distanceFromBase = pathAndItemLen - baseDirLen;
+		let leader;
+
+		if(item.type === 'dir'){
+			leader = getVisualIndexIdentifier(distanceFromBase);
+			// res[item] = [];
+			console.log(leader, '» '.repeat(distanceFromBase), item.icon, item.item);
+			lt(pathAndItem, distanceFromBase);
+		}else{
+			leader = getVisualIndexIdentifier(distanceFromBase);
+			//res[item].push(item);
+			console.log(leader, '» '.repeat(distanceFromBase), item.icon, item.item);
+		}
 	});
 }
 
-function dirTest(item){	
-	fs.lstatSync(item).isDirectory()
+function getFileProperties(item, fullPath){
+  // console.log('item', item);
+	let isImageFlag = isImage(fullPath);
+	let isDirFlag = isDirectory(fullPath);
+	var ret;
+  if(isImageFlag){
+  	ret = {type: 'image', item: item, fullPath: fullPath, icon: '🗻 '};
+  }else if(isDirFlag){
+  	ret = {type: 'dir', item: item, fullPath: fullPath, icon: '📁 '};
+  }else{
+  	ret = {type: 'file', item: item, fullPath: fullPath, icon: '📄 '};
+  }
+  return ret;
 }
 
-var baseDir = '/Users/thomashibbard/Desktop/ls-recursive/testDirectory';
-var baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
-// console.log(baseDirArr);no
-ls(baseDir, true, function(){
+function isDirectory(item){
+	return fs.lstatSync(item).isDirectory();
+}
+
+function getFileType(path){
+
+}
+
+function getVisualIndexIdentifier(distanceFromBase){
+	let leader = '';
+	if (distanceFromBase === 1){
+		//leader = '├─';
+	}	else{
+		//leader = '└─'
+	}
+	return leader;
+}
+
+function dirTest(item){	
+	fs.lstatSync(item).isDirectory();
+}
+
+let baseDir = yargs.d || path.join(__dirname, 'testDirectory');
+let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
+
+lt(baseDir, 0, function(){
 	processResults();
 });
-function processResults(){
 
-	// console.log(res);
+function isFirstChild(){
+
+}
+
+function isMiddleChild(){
+
+}
+
+function isLastChild(){
+
 }
 
 
@@ -56,4 +116,6 @@ function sort(a, b){
     return 0;
   };
 }
+// console.log(JSON.stringify(res, false, 2));
+module.exports = lt;
 
