@@ -23,21 +23,20 @@ let lt = function(source, parentDistance, callback) {
 		let pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean).length;
 		let distanceFromBase = pathAndItemLen - baseDirLen;
 		let leader;
-		let isDir = isDirectory(pathAndItem)
-		let icon = getIcon(pathAndItem);
+		let fileProperties = getFileProperties(pathAndItem);
 
-		if(isDir){
+		if(fileProperties.type === 'dir'){
 			leader = getVisualIndexIdentifier(distanceFromBase);
-			console.log(leader, '» '.repeat(distanceFromBase - 1), icon.icon, item);
+			console.log(leader, '» '.repeat(distanceFromBase - 1), fileProperties.icon, item);
 			lt(pathAndItem, distanceFromBase);
 		}else{
 			leader = getVisualIndexIdentifier(distanceFromBase - 1);
 			// console.log(distanceFromBase)
-			console.log(leader, '» '.repeat(distanceFromBase - 1), icon.icon, item);
+			console.log(leader, '» '.repeat(distanceFromBase - 1), fileProperties.icon, item);
 		}
 	})
 }
-function getIcon(path){
+function getFileProperties(path){
   
 	let isImageFlag = isImage(path);
 	let isDirFlag = isDirectory(path);
