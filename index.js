@@ -30,21 +30,22 @@ let lt = function(source, parentDistance, callback) {
 	//sort to put directories first by name, then all other file types alphabetically
 	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
 
-	itemsAsObj.forEach((item, i, items) => {
+	itemsAsObj.forEach((item, index, items) => {
 		let pathAndItem = item.fullPath;
 		let pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean).length;
 		let distanceFromBase = pathAndItemLen - baseDirLen;
 		let leader;
+		let familyStatus = getFamilyStatus(items, index);
 
 		if(item.type === 'dir'){
 			leader = getVisualIndexIdentifier(distanceFromBase);
 			// res[item] = [];
-			console.log(leader, '» '.repeat(distanceFromBase), item.icon, item.item);
+			console.log(familyStatus, leader, '» '.repeat(distanceFromBase), item.icon, item.item);
 			lt(pathAndItem, distanceFromBase);
 		}else{
 			leader = getVisualIndexIdentifier(distanceFromBase);
 			//res[item].push(item);
-			console.log(leader, '» '.repeat(distanceFromBase), item.icon, item.item);
+			console.log(familyStatus, leader, '» '.repeat(distanceFromBase), item.icon, item.item);
 		}
 	});
 }
@@ -86,6 +87,32 @@ function dirTest(item){
 	fs.lstatSync(item).isDirectory();
 }
 
+function getFamilyStatus(items, index){
+	let ret;
+	if(isFirstChild(index)){
+		ret = 'f';
+	}else if(isMiddleChild(items, index)){
+		ret = 'm';
+	}else if(isLastChild(items, index)){
+		ret = 'l';
+	}else{
+		ret = 'o';
+	}
+	return ret;
+}
+
+function isFirstChild(index){
+	return index === 0;
+}
+
+function isMiddleChild(items, index){
+  return index !== 0 && index !== items.length-1;
+}
+
+function isLastChild(items, index){
+	return index === items.length-1;
+}
+
 let baseDir = yargs.d || path.join(__dirname, 'testDirectory');
 let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
 
@@ -93,17 +120,6 @@ lt(baseDir, 0, function(){
 	processResults();
 });
 
-function isFirstChild(){
-
-}
-
-function isMiddleChild(){
-
-}
-
-function isLastChild(){
-
-}
 
 
 function sort(a, b){
