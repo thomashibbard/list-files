@@ -23,9 +23,8 @@ let lt = function(source, parentDistance, callback) {
 	// let items = fs.readdirSync(source).filter(junkFlag ? junk.not : () => true);
 
 	//single item and path to object containing type, icon, etc
-	let itemsAsObj = items.map((item, i, items) => { 
-		let pathAndItem = path.join(source, item);
-		return getFileProperties(item, pathAndItem);
+	let itemsAsObj = items.map((item) => { 
+		return getFileProperties(source, item);
 	});
 
 	//sort to put directories first by name, then all other file types alphabetically
@@ -50,19 +49,19 @@ let lt = function(source, parentDistance, callback) {
 	});
 }
 
-function getFileProperties(item, fullPath){
-  // console.log('item', item);
+function getFileProperties(source, item){
+  let fullPath = path.join(source, item);
 	let isImageFlag = isImage(fullPath);
 	let isDirFlag = isDirectory(fullPath);
-	var ret;
+	let returnObj;
   if(isImageFlag){
-  	ret = {type: 'image', item: item, fullPath: fullPath, icon: '🗻 '};
+  	returnObj = {type: 'image', item: item, fullPath: fullPath, icon: '🗻 '};
   }else if(isDirFlag){
-  	ret = {type: 'dir', item: item, fullPath: fullPath, icon: '📁 '};
+  	returnObj = {type: 'dir', item: item, fullPath: fullPath, icon: '📁 '};
   }else{
-  	ret = {type: 'file', item: item, fullPath: fullPath, icon: '📄 '};
+  	returnObj = {type: 'file', item: item, fullPath: fullPath, icon: '📄 '};
   }
-  return ret;
+  return returnObj;
 }
 
 function isDirectory(item){
