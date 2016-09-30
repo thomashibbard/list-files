@@ -1,6 +1,6 @@
 {
-	"name": "ls-recursive",
-	"version": "1.0.0",
+	"name": "lister",
+	"version": "1.0.1",
 	"description": "",
 	"main": "index.js",
 	"scripts": {
