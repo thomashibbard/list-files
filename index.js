@@ -7,18 +7,22 @@ const yargs = require('yargs').argv
 	, isImage = require('is-image')
 	, junk = require('junk')
 	, _sortBy = require('lodash.sortby')
+	, chalk = require('chalk')
 	// , _ = require('lodash');
 
 let res = {};
 // let junkFlag = yargs.h || false;
 // console.log(junkFlag);
-let lt = function(source, parentDistance, firstRun, callback) {
+let listFiles = function(source, parentDistance, firstRun, callback) {
 	// res[source] = [];
 	parentDistance = parentDistance || 0;
 	firstRun = firstRun || false;
 	callback = callback || (() => {});
 	source = path.resolve(path.sep + source);
 
+	if(firstRun){
+		console.log(' ', chalk.bgWhite.blue('' + source));
+	}
 	let items = fs.readdirSync(source).filter(junk.not);
 	// let items = fs.readdirSync(source).filter(junkFlag ? junk.not : () => true);
 
@@ -40,10 +44,10 @@ let lt = function(source, parentDistance, firstRun, callback) {
 		if(item.type === 'dir'){//print item and recurse function
 			leader = getVisualIndexIdentifier(distanceFromBase);
 			console.log(leader, ' | '.repeat(distanceFromBase), item.familyStatus.bracket, item.icon, item.item);
-			lt(item.fullPath, distanceFromBase);
+			listFiles(item.fullPath, distanceFromBase);
 		}else{//print item
 			leader = getVisualIndexIdentifier(distanceFromBase);
-			console.log(leader, ' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
+			console.log(leader, ' | '.repeat(distanceFromBase), item.familyStatus.bracket, item.icon, item.item);
 		}
 	});
 }
@@ -53,7 +57,7 @@ function getFileProperties(source, item, index, items){
 	let isImageFlag = isImage(fullPath);
 	let isDirFlag = isDirectory(fullPath);
 
-	let familyStatus = getFamilyStatus(fullPath, items, index);
+	let familyStatus = getFamilyStatus(fullPath, item, items, index);
 	let returnObj = {};
   returnObj.item = item;
   returnObj.fullPath = fullPath;
@@ -61,13 +65,13 @@ function getFileProperties(source, item, index, items){
 
   if(isImageFlag){
   	returnObj.type = 'image';
-  	returnObj.icon = '🗻 ';
+  	returnObj.icon = ' 🗻 ';
   }else if(isDirFlag){
   	returnObj.type = 'dir';
-  	returnObj.icon = '📁 ';
+  	returnObj.icon = ' 📁 ';
   }else{
   	returnObj.type = 'file';
-  	returnObj.icon = '📄 ';
+  	returnObj.icon = ' 📄 ';
   }
   return returnObj;
 }
@@ -94,11 +98,12 @@ function dirTest(item){
 	fs.lstatSync(item).isDirectory();
 }
 
-function getFamilyStatus(source, item, items, index){
+function getFamilyStatus(fullPath, item, items, index){
+	// console.log(fullPath, item, items, index);
 	let ret = {};
-	if(hasChildren(source, item, items, index)){
+	if(hasChildren(fullPath, item, items, index)){
 		ret.succession = 'patriarch';
-		ret.bracket = '└─┬';	
+		ret.bracket = '└──┬';	
 		// console.log(ret)	
 	}else if(isFirstChild(index)){
 		ret.succession = 'first child';
@@ -115,8 +120,12 @@ function getFamilyStatus(source, item, items, index){
 	return ret;
 }
 
-function hasChildren(source, item, items, index){
-	// console.log('items', items);
+function hasChildren(fullPath, item, items, index){
+	if(isDirectory(fullPath) && fs.readdirSync(fullPath).length > 0){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 function isFirstChild(index){
@@ -124,18 +133,21 @@ function isFirstChild(index){
 }
 
 function isMiddleChild(items, index){
+	// console.log(index, items)
+
   return index !== 0 && index !== items.length-1;
 }
 
 function isLastChild(items, index){
+	// console.log(index, items.length-1)
 	return index === items.length-1;
 }
 
 let baseDir = yargs.d || path.join(__dirname, 'testDirectory');
 let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
 
-lt(baseDir, 0, function(){
-	processResults();
+listFiles(baseDir, 0, true, function(){
+	console.log('done');
 });
 
 
@@ -150,5 +162,5 @@ function sort(a, b){
   };
 }
 // console.log(JSON.stringify(res, false, 2));
-module.exports = lt;
+module.exports = listFiles;
 
