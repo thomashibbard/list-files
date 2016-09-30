@@ -120,7 +120,6 @@ function isLastChild(items, index){
 }
 
 let baseDir = process.cwd();
-console.log(process.cwd(), '   ', __filename);
 let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
 
 let maxDepth = yargs.maxdepth || yargs.depth || false;
