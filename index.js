@@ -20,7 +20,7 @@ function listFiles(source, parentDistance, firstRun, callback) {
 	}
 
 	let items = fs.readdirSync(source).filter(junk.not);
-
+	//items.filter(filterGitIgnore);//filterGitIgnore(items);
 	//single item and path to object containing type, icon, etc
 	let itemsAsObj = items.map((item, index, itemsArr) => { 
 		return getFileProperties(source, item, index, itemsArr);
@@ -42,15 +42,23 @@ function listFiles(source, parentDistance, firstRun, callback) {
 
 		if(item.type === 'dir'){
 			//print item and recurse function
-			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
+			//console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 			listFiles(item.fullPath, distanceFromBase);
 		}else{
 			//print item
-			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
+			//console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 		}
 		index++;		
 	}
-};
+}
+
+function filterGitIgnore(items){
+	let re = /\r\n?|\n/gm;
+	let gitIgnoredFiles = fs.readFileSync('.gitignore', 'utf8');
+	console.log(gitIgnoredFiles.split(re).filter(Boolean));
+	return gitIgnoredFiles.split(re).filter(Boolean);
+
+}
 
 function getFileProperties(source, item, index, items){
   
