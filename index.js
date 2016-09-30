@@ -42,11 +42,11 @@ function listFiles(source, parentDistance, firstRun, callback) {
 
 		if(item.type === 'dir'){
 			//print item and recurse function
-			//console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
+			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 			listFiles(item.fullPath, distanceFromBase);
 		}else{
 			//print item
-			//console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
+			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 		}
 		index++;		
 	}
@@ -90,6 +90,7 @@ function isDirectory(item){
 }
 
 function getFamilyStatus(fullPath, item, items, index){
+	
 	let ret = {};
 	if(hasChildren(fullPath, item, items, index)){
 		ret.succession = 'patriarch';
