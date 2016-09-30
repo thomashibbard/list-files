@@ -1,13 +1,24 @@
-###File List
+#Mister Lister
 
-Prints to CLI all files in a provided directory
+Print a list of files and directories in a format resembling the output provided by `npm list`
 
-Use the `-d` flag to specify a direcory
+###Install Globally
 
- ````node index.js -d=/Users/thomas/Downloads/testDirectory````
+ `npm intall -g mister-lister`
 
 
-This will print a list of files and directories in a format resembling the output provided by `npm list`;
+###Run
+
+1. In CLI, navigate to directory for which you want a list of files
+
+2. Run `lister`
+
+
+###Options
+
+* `--depth=n` or `--maxdepth=n` where *n* is the number of file layers displayed
+
+###Output
 
 ````
   /Users/thomas/Downloads/testDirectory
