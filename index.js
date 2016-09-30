@@ -10,7 +10,7 @@ const yargs = require('yargs').argv
 	, _sortBy = require('lodash.sortby')
 	, chalk = require('chalk');
 
-let listFiles = function(source, parentDistance, firstRun, callback) {
+function listFiles(source, parentDistance, firstRun, callback) {
 	parentDistance = parentDistance || 0;
 	firstRun = firstRun || false;
 	source = path.resolve(path.sep + source);
