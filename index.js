@@ -6,10 +6,7 @@ const yargs = require('yargs').argv
 	, isImage = require('is-image')
 	, junk = require('junk')
 	, _sortBy = require('lodash.sortby')
-	, chalk = require('chalk')
-	// , _ = require('lodash');
-
-let res = {};
+	, chalk = require('chalk');
 
 let listFiles = function(source, parentDistance, firstRun, callback) {
 	parentDistance = parentDistance || 0;
@@ -17,7 +14,7 @@ let listFiles = function(source, parentDistance, firstRun, callback) {
 	source = path.resolve(path.sep + source);
 
 	if(firstRun){
-		console.log(' ', chalk.bgWhite.blue('' + source));
+		console.log(' ', chalk.bgWhite.blue(source));
 	}
 
 	let items = fs.readdirSync(source).filter(junk.not);
@@ -30,19 +27,28 @@ let listFiles = function(source, parentDistance, firstRun, callback) {
 	//sort to put directories first by name, then all other file types alphabetically
 	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
 
-	itemsAsObj.forEach((item, index, itemsArr) => {
+	let index = 0;
+	for(let item of itemsAsObj){
 
 		let pathAndItemLen = item.fullPath.split(path.sep).filter(Boolean).length;
 		let distanceFromBase = pathAndItemLen - baseDirLen;
 
-		if(item.type === 'dir'){//print item and recurse function
+		//continue loop is `maxDepth` has been specified
+		if(maxDepth && distanceFromBase > maxDepth){
+			continue;
+		}
+
+		if(item.type === 'dir'){
+			//print item and recurse function
 			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 			listFiles(item.fullPath, distanceFromBase);
-		}else{//print item
+		}else{
+			//print item
 			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 		}
-	});
-}
+		index++;		
+	}
+};
 
 function getFileProperties(source, item, index, items){
   
@@ -73,13 +79,8 @@ function isDirectory(item){
 	return fs.lstatSync(item).isDirectory();
 }
 
-function dirTest(item){	
-	fs.lstatSync(item).isDirectory();
-}
-
 function getFamilyStatus(fullPath, item, items, index){
 	let ret = {};
-
 	if(hasChildren(fullPath, item, items, index)){
 		ret.succession = 'patriarch';
 		ret.bracket = '└──┬';	
@@ -116,11 +117,12 @@ function isLastChild(items, index){
 	return index === items.length-1;
 }
 
-let baseDir = path.join(__dirname, 'testDirectory'); // yargs.d || path.join(__dirname, '.');//
+let baseDir = path.join(__dirname, 'testDirectory');  //yargs.d || path.join('/', '.');//
 let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
 
-listFiles(baseDir, 0, true);
 let maxDepth = yargs.maxdepth || yargs.depth || false;
+listFiles(baseDir, 0, true);
 console.log(maxDepth)
+// console.log(maxDepth);
 module.exports = listFiles;
 
