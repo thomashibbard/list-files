@@ -117,12 +117,11 @@ function isLastChild(items, index){
 	return index === items.length-1;
 }
 
-let baseDir = path.join(__dirname, 'testDirectory');  //yargs.d || path.join('/', '.');//
+let baseDir = __dirname;
 let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
 
 let maxDepth = yargs.maxdepth || yargs.depth || false;
 listFiles(baseDir, 0, true);
-console.log(maxDepth)
-// console.log(maxDepth);
+
 module.exports = listFiles;
 
