@@ -4,13 +4,13 @@ Prints to CLI all files in a provided directory
 
 Use the `-d` flag to specify a direcory
 
- ````node index.js -d=/Users/thomashibbard/Downloads/testDirectory````
+ ````node index.js -d=/Users/thomas/Downloads/testDirectory````
 
 
 This will print a list of files and directories in a format resembling the output provided by `npm list`;
 
 ````
-  /Users/thomashibbard/Downloads/testDirectory
+  /Users/thomas/Downloads/testDirectory
  └──┬ 📁  levelTwoDirectory1
  |  ├─── 📁  emptyDirectory
  |  └─── 📄  text1-1.txt
