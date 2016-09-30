@@ -21,7 +21,8 @@ function listFiles(source, parentDistance, firstRun, callback) {
 
 	let items = fs.readdirSync(source).filter(junk.not);
 
-	items = filterGitIgnore(items);
+
+	//items = filterGitIgnore(items);
 
 
 	//single item and path to object containing type, icon, etc
