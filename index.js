@@ -35,21 +35,21 @@ let listFiles = function(source, parentDistance, firstRun, callback) {
 	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
 
 	itemsAsObj.forEach((item, index, itemsArr) => {
-		// let pathAndItem = item.fullPath;
-		// console.log(item)
+
 		let pathAndItemLen = item.fullPath.split(path.sep).filter(Boolean).length;
 		let distanceFromBase = pathAndItemLen - baseDirLen;
-		let leader;
 
 		if(item.type === 'dir'){//print item and recurse function
-			leader = getVisualIndexIdentifier(distanceFromBase);
-			console.log(leader, ' | '.repeat(distanceFromBase), item.familyStatus.bracket, item.icon, item.item);
+			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 			listFiles(item.fullPath, distanceFromBase);
 		}else{//print item
-			leader = getVisualIndexIdentifier(distanceFromBase);
-			console.log(leader, ' | '.repeat(distanceFromBase), item.familyStatus.bracket, item.icon, item.item);
+			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 		}
 	});
+
+	if(firstRun){
+		callback();
+	}
 }
 
 function getFileProperties(source, item, index, items){
@@ -65,13 +65,13 @@ function getFileProperties(source, item, index, items){
 
   if(isImageFlag){
   	returnObj.type = 'image';
-  	returnObj.icon = ' 🗻 ';
+  	returnObj.icon = '🗻 ';
   }else if(isDirFlag){
   	returnObj.type = 'dir';
-  	returnObj.icon = ' 📁 ';
+  	returnObj.icon = '📁 ';
   }else{
   	returnObj.type = 'file';
-  	returnObj.icon = ' 📄 ';
+  	returnObj.icon = '📄 ';
   }
   return returnObj;
 }
@@ -82,16 +82,6 @@ function isDirectory(item){
 
 function getFileType(path){
 
-}
-
-function getVisualIndexIdentifier(distanceFromBase){
-	let leader = '';
-	if (distanceFromBase === 1){
-		//leader = '├─';
-	}	else{
-		//leader = '└─'
-	}
-	return leader;
 }
 
 function dirTest(item){	
@@ -107,13 +97,13 @@ function getFamilyStatus(fullPath, item, items, index){
 		// console.log(ret)	
 	}else if(isFirstChild(index)){
 		ret.succession = 'first child';
-		ret.bracket = '├──';
+		ret.bracket = '├───';
 	}else if(isMiddleChild(items, index)){
 		ret.succession = 'middle child';
-		ret.bracket = '├──';
+		ret.bracket = '├───';
 	}else if(isLastChild(items, index)){
 		ret.succession = 'last child';
-		ret.bracket = '└──';
+		ret.bracket = '└───';
 	}else{
 		ret.bracket= '»';
 	}
@@ -133,34 +123,17 @@ function isFirstChild(index){
 }
 
 function isMiddleChild(items, index){
-	// console.log(index, items)
-
   return index !== 0 && index !== items.length-1;
 }
 
 function isLastChild(items, index){
-	// console.log(index, items.length-1)
 	return index === items.length-1;
 }
 
 let baseDir = yargs.d || path.join(__dirname, 'testDirectory');
 let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
 
-listFiles(baseDir, 0, true, function(){
-	console.log('done');
-});
+listFiles(baseDir, 0, true);
 
-
-
-function sort(a, b){
-  return function(a, b){
-    if (a.name > b.name)
-      return -1;
-    if (a.name < b.name)
-      return 1;
-    return 0;
-  };
-}
-// console.log(JSON.stringify(res, false, 2));
 module.exports = listFiles;
 
