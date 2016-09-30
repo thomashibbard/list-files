@@ -4,7 +4,6 @@ const yargs = require('yargs').argv
 	, path = require('path')
 	, fs = require('fs')
 	, Promise = require('bluebird')
-	, escape = require('escape-regexp')
 	, isImage = require('is-image')
 	, junk = require('junk')
 	, _sortBy = require('lodash.sortby')
@@ -13,54 +12,62 @@ const yargs = require('yargs').argv
 let res = {};
 // let junkFlag = yargs.h || false;
 // console.log(junkFlag);
-let lt = function(source, parentDistance, callback) {
+let lt = function(source, parentDistance, firstRun, callback) {
 	// res[source] = [];
 	parentDistance = parentDistance || 0;
-	callback = callback || function(){};
+	firstRun = firstRun || false;
+	callback = callback || (() => {});
 	source = path.resolve(path.sep + source);
 
 	let items = fs.readdirSync(source).filter(junk.not);
 	// let items = fs.readdirSync(source).filter(junkFlag ? junk.not : () => true);
 
 	//single item and path to object containing type, icon, etc
-	let itemsAsObj = items.map((item) => { 
-		return getFileProperties(source, item);
+	let itemsAsObj = items.map((item, index, itemsArr) => { 
+		return getFileProperties(source, item, index, itemsArr);
 	});
-
+	// console.log(JSON.stringify(itemsAsObj, false, 2));
 	//sort to put directories first by name, then all other file types alphabetically
 	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
 
-	itemsAsObj.forEach((item, index, items) => {
-		let pathAndItem = item.fullPath;
-		let pathAndItemLen = pathAndItem.split(path.sep).filter(Boolean).length;
+	itemsAsObj.forEach((item, index, itemsArr) => {
+		// let pathAndItem = item.fullPath;
+		// console.log(item)
+		let pathAndItemLen = item.fullPath.split(path.sep).filter(Boolean).length;
 		let distanceFromBase = pathAndItemLen - baseDirLen;
 		let leader;
-		let familyStatus = getFamilyStatus(items, index);
 
-		if(item.type === 'dir'){
+		if(item.type === 'dir'){//print item and recurse function
 			leader = getVisualIndexIdentifier(distanceFromBase);
-			// res[item] = [];
-			console.log(familyStatus, leader, '» '.repeat(distanceFromBase), item.icon, item.item);
-			lt(pathAndItem, distanceFromBase);
-		}else{
+			console.log(leader, ' | '.repeat(distanceFromBase), item.familyStatus.bracket, item.icon, item.item);
+			lt(item.fullPath, distanceFromBase);
+		}else{//print item
 			leader = getVisualIndexIdentifier(distanceFromBase);
-			//res[item].push(item);
-			console.log(familyStatus, leader, '» '.repeat(distanceFromBase), item.icon, item.item);
+			console.log(leader, ' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 		}
 	});
 }
 
-function getFileProperties(source, item){
+function getFileProperties(source, item, index, items){
   let fullPath = path.join(source, item);
 	let isImageFlag = isImage(fullPath);
 	let isDirFlag = isDirectory(fullPath);
-	let returnObj;
+
+	let familyStatus = getFamilyStatus(fullPath, items, index);
+	let returnObj = {};
+  returnObj.item = item;
+  returnObj.fullPath = fullPath;
+  returnObj.familyStatus = familyStatus;
+
   if(isImageFlag){
-  	returnObj = {type: 'image', item: item, fullPath: fullPath, icon: '🗻 '};
+  	returnObj.type = 'image';
+  	returnObj.icon = '🗻 ';
   }else if(isDirFlag){
-  	returnObj = {type: 'dir', item: item, fullPath: fullPath, icon: '📁 '};
+  	returnObj.type = 'dir';
+  	returnObj.icon = '📁 ';
   }else{
-  	returnObj = {type: 'file', item: item, fullPath: fullPath, icon: '📄 '};
+  	returnObj.type = 'file';
+  	returnObj.icon = '📄 ';
   }
   return returnObj;
 }
@@ -87,18 +94,29 @@ function dirTest(item){
 	fs.lstatSync(item).isDirectory();
 }
 
-function getFamilyStatus(items, index){
-	let ret;
-	if(isFirstChild(index)){
-		ret = 'f';
+function getFamilyStatus(source, item, items, index){
+	let ret = {};
+	if(hasChildren(source, item, items, index)){
+		ret.succession = 'patriarch';
+		ret.bracket = '└─┬';	
+		// console.log(ret)	
+	}else if(isFirstChild(index)){
+		ret.succession = 'first child';
+		ret.bracket = '├──';
 	}else if(isMiddleChild(items, index)){
-		ret = 'm';
+		ret.succession = 'middle child';
+		ret.bracket = '├──';
 	}else if(isLastChild(items, index)){
-		ret = 'l';
+		ret.succession = 'last child';
+		ret.bracket = '└──';
 	}else{
-		ret = 'o';
+		ret.bracket= '»';
 	}
 	return ret;
+}
+
+function hasChildren(source, item, items, index){
+	// console.log('items', items);
 }
 
 function isFirstChild(index){
