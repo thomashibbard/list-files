@@ -3,7 +3,6 @@
 const yargs = require('yargs').argv
 	, path = require('path')
 	, fs = require('fs')
-	, Promise = require('bluebird')
 	, isImage = require('is-image')
 	, junk = require('junk')
 	, _sortBy = require('lodash.sortby')
@@ -11,26 +10,23 @@ const yargs = require('yargs').argv
 	// , _ = require('lodash');
 
 let res = {};
-// let junkFlag = yargs.h || false;
-// console.log(junkFlag);
+
 let listFiles = function(source, parentDistance, firstRun, callback) {
-	// res[source] = [];
 	parentDistance = parentDistance || 0;
 	firstRun = firstRun || false;
-	callback = callback || (() => {});
 	source = path.resolve(path.sep + source);
 
 	if(firstRun){
 		console.log(' ', chalk.bgWhite.blue('' + source));
 	}
+
 	let items = fs.readdirSync(source).filter(junk.not);
-	// let items = fs.readdirSync(source).filter(junkFlag ? junk.not : () => true);
 
 	//single item and path to object containing type, icon, etc
 	let itemsAsObj = items.map((item, index, itemsArr) => { 
 		return getFileProperties(source, item, index, itemsArr);
 	});
-	// console.log(JSON.stringify(itemsAsObj, false, 2));
+
 	//sort to put directories first by name, then all other file types alphabetically
 	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
 
@@ -46,19 +42,16 @@ let listFiles = function(source, parentDistance, firstRun, callback) {
 			console.log(' | '.repeat(distanceFromBase-1), item.familyStatus.bracket, item.icon, item.item);
 		}
 	});
-
-	if(firstRun){
-		callback();
-	}
 }
 
 function getFileProperties(source, item, index, items){
+  
   let fullPath = path.join(source, item);
 	let isImageFlag = isImage(fullPath);
 	let isDirFlag = isDirectory(fullPath);
-
 	let familyStatus = getFamilyStatus(fullPath, item, items, index);
 	let returnObj = {};
+
   returnObj.item = item;
   returnObj.fullPath = fullPath;
   returnObj.familyStatus = familyStatus;
@@ -80,21 +73,16 @@ function isDirectory(item){
 	return fs.lstatSync(item).isDirectory();
 }
 
-function getFileType(path){
-
-}
-
 function dirTest(item){	
 	fs.lstatSync(item).isDirectory();
 }
 
 function getFamilyStatus(fullPath, item, items, index){
-	// console.log(fullPath, item, items, index);
 	let ret = {};
+
 	if(hasChildren(fullPath, item, items, index)){
 		ret.succession = 'patriarch';
 		ret.bracket = '└──┬';	
-		// console.log(ret)	
 	}else if(isFirstChild(index)){
 		ret.succession = 'first child';
 		ret.bracket = '├───';
@@ -104,8 +92,6 @@ function getFamilyStatus(fullPath, item, items, index){
 	}else if(isLastChild(items, index)){
 		ret.succession = 'last child';
 		ret.bracket = '└───';
-	}else{
-		ret.bracket= '»';
 	}
 	return ret;
 }
@@ -130,10 +116,11 @@ function isLastChild(items, index){
 	return index === items.length-1;
 }
 
-let baseDir = yargs.d || path.join(__dirname, 'testDirectory');
+let baseDir = path.join(__dirname, 'testDirectory'); // yargs.d || path.join(__dirname, '.');//
 let baseDirLen = baseDir.split(path.sep).filter(Boolean).length;
 
 listFiles(baseDir, 0, true);
-
+let maxDepth = yargs.maxdepth || yargs.depth || false;
+console.log(maxDepth)
 module.exports = listFiles;
 
