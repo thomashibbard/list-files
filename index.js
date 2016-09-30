@@ -20,15 +20,18 @@ function listFiles(source, parentDistance, firstRun, callback) {
 	}
 
 	let items = fs.readdirSync(source).filter(junk.not);
-	//items.filter(filterGitIgnore);//filterGitIgnore(items);
+
+	items = filterGitIgnore(items);
+
+
 	//single item and path to object containing type, icon, etc
 	let itemsAsObj = items.map((item, index, itemsArr) => { 
 		return getFileProperties(source, item, index, itemsArr);
 	});
 
 	//sort to put directories first by name, then all other file types alphabetically
-	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
 
+	itemsAsObj = _sortBy(itemsAsObj, [function(o) { return o.type !== 'dir'; }, 'name']);
 	let index = 0;
 	for(let item of itemsAsObj){
 
@@ -55,9 +58,11 @@ function listFiles(source, parentDistance, firstRun, callback) {
 function filterGitIgnore(items){
 	let re = /\r\n?|\n/gm;
 	let gitIgnoredFiles = fs.readFileSync('.gitignore', 'utf8');
-	console.log(gitIgnoredFiles.split(re).filter(Boolean));
-	return gitIgnoredFiles.split(re).filter(Boolean);
-
+	gitIgnoredFiles = gitIgnoredFiles.split(re).filter(Boolean).concat('.git');
+	// console.log('gitIgnoredFiles', gitIgnoredFiles)
+	return items.filter(item => {
+		return gitIgnoredFiles.indexOf(item) < 0;
+	});
 }
 
 function getFileProperties(source, item, index, items){
@@ -90,7 +95,7 @@ function isDirectory(item){
 }
 
 function getFamilyStatus(fullPath, item, items, index){
-	
+
 	let ret = {};
 	if(hasChildren(fullPath, item, items, index)){
 		ret.succession = 'patriarch';
